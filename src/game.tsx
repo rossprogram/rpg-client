@@ -7,6 +7,9 @@ import { drawMap, collisionType } from './tiles';
 import keyboard from './keyboard';
 
 let theState;
+let theDispatch;
+
+let theRoom = 0;
 
 let previousTime;
 
@@ -47,7 +50,8 @@ function draw(time) {
 
   let speed = Math.sqrt(me.dx*me.dx + me.dy*me.dy);
   me.f += speed * elapsed * 0.01;
-  me.f %= 6;
+  me.f = (me.f + 36) % 6;
+  console.log(me.f);
 
   // Collision detection and reactions
   let newX = me.x + me.dx * elapsed * 0.05;
@@ -75,6 +79,13 @@ function draw(time) {
     }
   }
 
+  ////////////////////////////////////////////////////////////////
+  // Update room
+  
+  if (collisionType(me.x + 8, me.y) !== theRoom) {
+    theRoom = collisionType(me.x + 8, me.y);
+    theDispatch( ['entered-room', theRoom] );
+  }
 
   ////////////////////////////////////////////////////////////////
   // Update camera
@@ -120,6 +131,10 @@ function draw(time) {
 export function update( message, state ) {
   theState = state;
 
+  if (message[0] == 'entered-room') {
+    return [ {...state, room: message[1] }, Cmd.none ];
+  }
+  
   if (message[0] == 'set-realm') {
     return [ {...state, realm: message[1] }, Cmd.none ];
   }
@@ -167,6 +182,8 @@ export function init(state, route) {
 
 export function view( { state, dispatch } ) {
   if (state.realm) {
+    theDispatch = dispatch;
+    
     return <canvas id="canvas" style={{position:"absolute",top:"0px",left:"0px","z-index":-1}} width="100" height="100" hook={{insert: () => dispatch(['canvas-inserted']),                                                       destroy: () => document.body.style.overflow = 'initial'}}></canvas>;
   }
   

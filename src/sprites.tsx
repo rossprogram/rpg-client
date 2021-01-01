@@ -62,7 +62,7 @@ export function drawSprite( ctx, sprite ) {
   let sx = direction * 16;
   let sy = 0;
 
-  let walking = (sprite.dx * sprite.dx + sprite.dy * sprite.dy > 0.1);
+  let walking = (sprite.dx * sprite.dx + sprite.dy * sprite.dy > 0.01);
   if (walking) {
     sy = 32*2;
     sx = (Math.floor(sprite.f) + direction * 6 ) * 16;

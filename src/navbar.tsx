@@ -52,6 +52,7 @@ export function view( { state, dispatch } ) {
     <li class={{"nav-item":true}}>
     <Link class={{"nav-link":true}} dispatch={dispatch} href="/realms">Realms</Link>    
     </li>
+    <p>{state.room}</p>
     </ul>
     <ul class={{"navbar-nav":true, "ml-auto": true}}>
     <li class={{"nav-item":true, "dropdown": true, "show": state.dropdown===true}}>
@@ -65,8 +66,8 @@ export function view( { state, dispatch } ) {
     </li>
     </ul>
     </div>
-    </nav>;
-}
+    </nav>;}
+
 
 
 export default view;
