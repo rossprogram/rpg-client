@@ -1,0 +1,14 @@
+{ "columns":16,
+ "image":"..\/images\/interiors_16x16.png",
+ "imageheight":6560,
+ "imagewidth":256,
+ "margin":0,
+ "name":"Interiors",
+ "spacing":0,
+ "tilecount":6560,
+ "tiledversion":"1.4.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":1.4
+}

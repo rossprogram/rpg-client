@@ -18,9 +18,16 @@ function clearError(dispatch) {
   };
 }
 
-
 export function view( { state, dispatch } ) {
+  let alert = (state.flashDanger) && <div class={{"alert":true, "alert-danger":true}} role="alert">
+      {state.flashDanger}
+      <button on-click={[[clearError(dispatch)]]} type="button" class={{close:true}} data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+      </button>
+    </div>;
+  
   let content = <main role="main" class={{"flex-shrink-0":true}}>
+      {alert}
       <Login state={state} dispatch={dispatch}/>
     </main>;
 
@@ -29,18 +36,13 @@ export function view( { state, dispatch } ) {
                 <Navbar state={state} dispatch={dispatch} />
                 </header>,
                 <main role="main" class={{"flex-shrink-0":true}}>
+                {alert}
                 <Router state={state} dispatch={dispatch}/>
                 </main>
               ];
   }
   
   return <body class={{"d-flex":true, "flex-column":true, "h-100":true}}>
-    {(state.flashDanger) && <div class={{"alert":true, "alert-danger":true}} role="alert">
-     {state.flashDanger}
-     <button on-click={[[clearError(dispatch)]]} type="button" class={{close:true}} data-dismiss="alert" aria-label="Close">
-     <span aria-hidden="true">&times;</span>
-     </button>
-     </div>}
     { content }
     <Footer state={state} dispatch={dispatch} />
     </body>;

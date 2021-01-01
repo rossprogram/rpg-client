@@ -13,7 +13,7 @@ export function init() {
 export function view( { state, dispatch } ) {
   return <div class={{"container":true}}>
     <h1>Need help?</h1>
-    <p>Email ximera@math.osu.edu</p>
+    <p>Email kisonecat@gmail.com</p>
     </div>
 }
 

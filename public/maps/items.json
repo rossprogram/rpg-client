@@ -1,0 +1,14 @@
+{ "columns":22,
+ "image":"..\/images\/office_interiors_16x16.png",
+ "imageheight":384,
+ "imagewidth":352,
+ "margin":0,
+ "name":"items",
+ "spacing":0,
+ "tilecount":528,
+ "tiledversion":"1.4.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":1.4
+}

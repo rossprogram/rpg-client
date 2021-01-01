@@ -31,15 +31,15 @@ function logout(dispatch) {
   };
 }
 
-function andAlso(a,b) {
-  return function (x) {
-    a(x);
-    b(x);
+function andAlso(dispatch,handler) {
+  return function (message) {
+    handler(dispatch);
+    dispatch(message);
   };  
 }
 
 export function view( { state, dispatch } ) {
-  return <nav class={{navbar:true, "fixed-top":true, "justify-content-between":true, "navbar-expand-md":true, "navbar-light":true, "bg-light": true}}>
+  return <nav class={{navbar:true, "navbar-expand-md":true, "navbar-light":true, "bg-light": true}}>
     <Link class={{"navbar-brand":true}} dispatch={dispatch} href="/">RPG</Link>
     <button class={{"navbar-toggler":true}} type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class={{"navbar-toggler-icon":true}}></span>
@@ -50,7 +50,7 @@ export function view( { state, dispatch } ) {
     <Link class={{"nav-link":true}} dispatch={dispatch} href="/help">Help</Link>
     </li>
     <li class={{"nav-item":true}}>
-    <Link class={{"nav-link":true}} dispatch={dispatch} href="/features">Features</Link>    
+    <Link class={{"nav-link":true}} dispatch={dispatch} href="/realms">Realms</Link>    
     </li>
     </ul>
     <ul class={{"navbar-nav":true, "ml-auto": true}}>
@@ -59,8 +59,8 @@ export function view( { state, dispatch } ) {
     {state.user.email}
     </a>
     <div class={{"dropdown-menu":true, "show": state.dropdown===true}} aria-labelledby="navbarDropdownMenuLink">
-    <Link class={{"dropdown-item":true}} dispatch={andAlso(closeDropdown(dispatch),dispatch)} href={`/users/${state.user.email}`}>{icon('id-card')}&nbsp;Profile</Link>
-    <a class={{"dropdown-item":true}} href="#" on-click={andAlso(logout(dispatch),dispatch)}>{icon('sign-out-alt')}&nbsp;Logout</a>
+    <Link class={{"dropdown-item":true}} dispatch={dispatch} href={`/users/${state.user.email}`}>{icon('id-card')}&nbsp;Profile</Link>
+    <a class={{"dropdown-item":true}} href="#" on-click={(ev) => logout(dispatch)(ev)}>{icon('sign-out-alt')}&nbsp;Logout</a>
     </div>
     </li>
     </ul>

@@ -4,6 +4,9 @@ import Route from 'route-parser';
 
 import Home from './home';
 import Help from './help';
+import Profile from './profile';
+import Realms from './realms';
+import Game from './game';
 
 function merge( state, stateAndCommands ) {
   return [ { ...state, ...stateAndCommands[0] },
@@ -11,28 +14,37 @@ function merge( state, stateAndCommands ) {
 }
 
 function findRoute( pathname, state ) {
-  let r = new Route('/:username/:repository/(*filename).tex');
+  let r = new Route('/users/:email');
   
-  //if (r.match(pathname))
-  //return merge( { ...state, component: ViewSource }, ViewSource.init(r.match(pathname)) );
+  if (r.match(pathname)) {
+    return Profile.init({ ...state, component: Profile }, r.match(pathname));
+  }
 
+  r = new Route('/realms/:id');
+  if (r.match(pathname)) {
+    return Game.init({ ...state, component: Game }, r.match(pathname));
+  }  
+
+  if (pathname === '/realms')
+    return Realms.init({ ...state, component: Realms });
+  if (pathname === '/')
+    return Realms.init({ ...state, component: Realms });    
+  
   if (pathname === '/help')
     return [{ ...state, component: Help }, Cmd.none];
   
-  if (pathname === '/')
-    return [{ ...state, component: Home }, Cmd.none];
 
   //r = new Route('/:username/:repository/(*filename)');
   //if (r.match(pathname))
   //return merge( { ...state, component: Page }, Page.init(r.match(pathname)) );
 
   // No route found!
-  return [state, Cmd.none];
+  return [{ ...state, component: false }, Cmd.none];
 }
 
 export function update( message, state ) {
   if (message[0] == 'navigate-to') {
-    return findRoute( message[1], state );
+    return findRoute( message[1], {...state, dropdown: false, flashDanger: false} );
   }
   
   if (state && state.component) 
@@ -62,8 +74,19 @@ export function view( { state, dispatch } ) {
 const stopPropagation = function(ev) { ev.stopPropagation() };
 const preventDefault = function(ev) { ev.preventDefault() };
 
+function onClick( dispatch, href ) {
+  return function(ev) {
+    ev.preventDefault()
+
+    dispatch(['navigate-to', href]);
+    history.pushState(null, '', href);
+    
+    ev.stopPropagation();
+  };
+}
+
 export function Link( props, children ) {
-  return <a {...props} on-click={[[preventDefault], [props.dispatch, ['navigate-to', props.href]], [() => history.pushState(null, '', props.href)], [stopPropagation]]}>{ children }</a>;
+  return <a {...props} on-click={onClick(props.dispatch, props.href)}>{ children }</a>;
 }
 
 export default { view, init, update, Link };

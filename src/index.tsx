@@ -8,7 +8,7 @@ import { version } from '../package.json';
 console.log("This is the Ross RPG, version",version);
 
 ////////////////////////////////////////////////////////////////
-// the elm architecture lifecycle, via snabbdom
+// my riff on the elm architecture, via snabbdom
 
 import Snabbdom from 'snabbdom-pragma';
 
@@ -30,8 +30,10 @@ var vnode;
 let oldState = window.localStorage.getItem('state');
 
 let state;
-if (oldState)
+if (oldState) {
   state = JSON.parse(oldState);
+  delete state.canvas;
+}
 
 function repaint() {
   if (vnode === undefined)
@@ -42,6 +44,11 @@ function repaint() {
 
 window.onpopstate = function() {
   dispatch( ['navigate-to', window.location.pathname] );
+};
+
+window.onresize = function() {
+  console.log('onresize');
+  dispatch( ['window-resize', window.innerWidth, window.innerHeight] );
 };
 
 import app from './app';
@@ -63,7 +70,8 @@ const repaintSlowly = debounce( repaint, 10 );
 function update(stateAndCommand) {
   state = stateAndCommand[0];
   window.localStorage.setItem('state', JSON.stringify(state));
-  
+  //console.log(state);
+               
   //window.requestAnimationFrame( repaint );
   repaintSlowly();
   
@@ -71,6 +79,8 @@ function update(stateAndCommand) {
 
   (async () => {
     for await (const message of command() ) {
+      console.log( message );
+
       dispatch(message);
       //window.requestAnimationFrame( repaint );
       repaintSlowly();

@@ -48,5 +48,13 @@ body {
 }
 
 html {
-  overflow-y: scroll;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+canvas {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
