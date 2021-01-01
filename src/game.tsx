@@ -3,7 +3,7 @@ import Cmd from './cmd';
 import Server from './api';
 import { Link } from './router';
 
-import { drawMap } from './tiles';
+import { drawMap, collisionType } from './tiles';
 import keyboard from './keyboard';
 
 let theState;
@@ -12,7 +12,7 @@ let previousTime;
 
 let cameraX = 500;
 let cameraY = 700;
-let sprites = [ { image: 'Mary', x: 600, y: 800, sx: 0, sy: 0, f: 0, dx: 0, dy: 0 } ];
+let sprites = [ { image: 'Mary', x: 660, y: 810, sx: 0, sy: 0, f: 0, dx: 0, dy: 0 } ];
 
 function draw(time) {
   ////////////////////////////////////////////////////////////////  
@@ -49,8 +49,32 @@ function draw(time) {
   me.f += speed * elapsed * 0.01;
   me.f %= 6;
 
-  me.x += me.dx * elapsed * 0.05;
-  me.y += me.dy * elapsed * 0.05;
+  // Collision detection and reactions
+  let newX = me.x + me.dx * elapsed * 0.05;
+  let newY = me.y + me.dy * elapsed * 0.05;
+
+  let isCollided = function ( x, y ) {
+    return (collisionType(x + 0.5, y) > 0) && (collisionType(x + 15.5, y) > 0);
+  };
+  
+  
+  if (isCollided(newX, me.y)) {
+    me.x = newX;
+  }
+
+  if (isCollided(me.x, newY)) {
+    me.y = newY;
+  } else {
+    for( let offset of [-1,1,-2,2,-3,3,-4,4, -5, 5] ) {
+      let newX = me.x + offset;
+      if (isCollided(newX, newY)) {      
+        me.x = newX;
+        me.y = newY;
+        break;
+      }
+    }
+  }
+
 
   ////////////////////////////////////////////////////////////////
   // Update camera

@@ -92,6 +92,26 @@ function drawLayer( ctx, map, layer ) {
   }
 }
 
+export function collisionType( x, y ) {
+  let ty = Math.floor(y / theMap.tileheight );
+  let tx = Math.floor(x / theMap.tilewidth );  
+  
+  for(let layer of theLayers) {
+    if (layer.name == 'Collision') {
+      ty = Math.min( layer.height, ty );
+      ty = Math.max( 0, ty );
+
+      tx = Math.min( layer.width, tx );
+      tx = Math.max( 0, tx );      
+
+      let gid = layer.data[tx+ty*layer.width];
+      return gid;
+    }
+  }
+
+  return 0;
+}
+
 export function drawMap(ctx, sprites) {
   let baseLayer = theLayers[0];
 
@@ -100,6 +120,9 @@ export function drawMap(ctx, sprites) {
   let cameraY = -matrix.f;
   let viewportHeight = ctx.canvas.height;
   let viewportWidth = ctx.canvas.width;
+
+  ctx.fillStyle = theMap.backgroundcolor;
+  ctx.fillRect( cameraX, cameraY, viewportWidth, viewportHeight );
   
   let y1 = Math.floor(cameraY / theMap.tileheight );
   let y2 = Math.ceil((cameraY + viewportHeight) / theMap.tileheight );    
@@ -112,18 +135,20 @@ export function drawMap(ctx, sprites) {
   x1 = Math.max( 0, x1 );
   
   for(let y = y1; y < y2; y++ ) {
-    for(let i=0; i < 4; i++ ) {
-      let layer = theLayers[i];
-      let oy = layer.offsety || 0;
+    for(let layer of theLayers) {
+      if (layer.name !== 'Collision') {
+        let oy = layer.offsety || 0;
 
-      for(let x = x1; x < x2; x++ ) {
-        let gid = layer.data[x+y*layer.width];
-        let [tileset, id] = gidToTileset(theMap, gid);
-        if (tileset) {
+        for(let x = x1; x < x2; x++ ) {
+          let gid = layer.data[x+y*layer.width];
+          let [tileset, id] = gidToTileset(theMap, gid);
           let ox = layer.offsetx || 0;
-          drawTile( ctx, tileset, id,
-                    x*theMap.tilewidth + ox,
-                    y*theMap.tileheight + oy);
+          
+          if (tileset) {
+            drawTile( ctx, tileset, id,
+                      x*theMap.tilewidth + ox,
+                      y*theMap.tileheight + oy);
+          }
         }
       }
     }
