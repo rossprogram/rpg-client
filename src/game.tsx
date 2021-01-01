@@ -51,7 +51,6 @@ function draw(time) {
   let speed = Math.sqrt(me.dx*me.dx + me.dy*me.dy);
   me.f += speed * elapsed * 0.01;
   me.f = (me.f + 36) % 6;
-  console.log(me.f);
 
   // Collision detection and reactions
   let newX = me.x + me.dx * elapsed * 0.05;
@@ -184,7 +183,7 @@ export function view( { state, dispatch } ) {
   if (state.realm) {
     theDispatch = dispatch;
     
-    return <canvas id="canvas" style={{position:"absolute",top:"0px",left:"0px","z-index":-1}} width="100" height="100" hook={{insert: () => dispatch(['canvas-inserted']),                                                       destroy: () => document.body.style.overflow = 'initial'}}></canvas>;
+    return <canvas id="canvas" style={{position:"absolute",top:"0px",left:"0px","z-index":-1}} width="100" height="100" hook={{insert: () => dispatch(['canvas-inserted']), destroy: () => document.body.style.overflow = 'initial'}}></canvas>;
   }
   
   return <div class={{container: true}}>

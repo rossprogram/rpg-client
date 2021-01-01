@@ -1,4 +1,6 @@
+
 const API_ROOT='http://localhost:4000/';
+//const API_ROOT='https://rpg.rossprogram.org/';
 
 export async function getToken(email, password) {
   let headers = new Headers();
