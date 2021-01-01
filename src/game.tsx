@@ -4,16 +4,19 @@ import Server from './api';
 import { Link } from './router';
 
 import { drawMap } from './tiles';
-import { drawSprite } from './sprites';
 import keyboard from './keyboard';
 
 let theState;
 
 let previousTime;
 
+let cameraX = 500;
+let cameraY = 700;
 let sprites = [ { image: 'Mary', x: 600, y: 800, sx: 0, sy: 0, f: 0, dx: 0, dy: 0 } ];
 
 function draw(time) {
+  ////////////////////////////////////////////////////////////////  
+  // Compute time since the previous frame
   let elapsed = 0;
   
   if (previousTime) {
@@ -21,19 +24,20 @@ function draw(time) {
   }
   previousTime = time;
 
+  ////////////////////////////////////////////////////////////////
+  // Physics for walking
   let me = sprites[0];
 
-  if (keyboard.isDownPressed()) { me.dy += elapsed/20.0; me.sy = 1; me.sx = 0; }
-  if (keyboard.isUpPressed()) { me.dy -= elapsed/20.0; me.sy = -1; me.sx = 0; }
-  if (keyboard.isRightPressed()) { me.dx += elapsed/20.0; me.sx = 1; me.sy = 0; }
-  if (keyboard.isLeftPressed()) { me.dx -= elapsed/20.0; me.sx = -1; me.sy = 0; }
+  let factor = 20.0;
+  if (keyboard.isDownPressed()) { me.dy += elapsed/factor; me.sy = 1; me.sx = 0; }
+  if (keyboard.isUpPressed()) { me.dy -= elapsed/factor; me.sy = -1; me.sx = 0; }
+  if (keyboard.isRightPressed()) { me.dx += elapsed/factor; me.sx = 1; me.sy = 0; }
+  if (keyboard.isLeftPressed()) { me.dx -= elapsed/factor; me.sx = -1; me.sy = 0; }
 
-  me.dx /= 1.9;
-  me.dy /= 1.9;
+  me.dx /= 1.3;
+  me.dy /= 1.3;
   
-  const maxspeed = 3.2;
-  me.dx = Math.min(Math.max(me.dx, -maxspeed), maxspeed);
-  me.dy = Math.min(Math.max(me.dy, -maxspeed), maxspeed);
+  const maxspeed = 1.84;
 
   let norm = Math.sqrt(me.dx*me.dx + me.dy*me.dy);
   if (norm > maxspeed) {
@@ -45,18 +49,45 @@ function draw(time) {
   me.f += speed * elapsed * 0.01;
   me.f %= 6;
 
-  me.x += me.dx * elapsed * 0.03;
-  me.y += me.dy * elapsed * 0.03;
+  me.x += me.dx * elapsed * 0.05;
+  me.y += me.dy * elapsed * 0.05;
 
+  ////////////////////////////////////////////////////////////////
+  // Update camera
   const canvas = theState.canvas;
   const ctx = canvas.getContext('2d');
   
-  ctx.resetTransform();
-  ctx.translate( -500, -700 );
+  let px = me.x + 8;
+  let py = me.y - 10;
 
-  drawMap(ctx);
-  drawSprite( ctx, me );
-  
+  let goalCameraX = cameraX;
+  let goalCameraY = cameraY;  
+      
+  let cameraMargin = 0.25;
+  if ((px - cameraX) < (cameraMargin * canvas.width)) {
+    goalCameraX = px - cameraMargin * canvas.width;
+  }
+  if ((px - cameraX) > ((1.0 - cameraMargin) * canvas.width)) {
+    goalCameraX = px - (1.0 - cameraMargin) * canvas.width;
+  }
+  if ((py - cameraY) < (cameraMargin * canvas.height)) {
+    goalCameraY = py - cameraMargin * canvas.height;
+  }
+  if ((py - cameraY) > ((1.0 - cameraMargin) * canvas.height)) {
+    goalCameraY = py - (1.0 - cameraMargin) * canvas.height;
+  }    
+
+  cameraX = (cameraX + goalCameraX) / 2.0;
+  cameraY = (cameraY + goalCameraY) / 2.0;
+
+  ctx.resetTransform();
+  ctx.translate( Math.round(-cameraX), Math.round(-cameraY) );
+
+  ////////////////////////////////////////////////////////////////
+  // Draw everything
+  drawMap(ctx, sprites);
+
+  // Repeat if there is still a canvas to play on
   if (document.getElementById('canvas'))
       window.requestAnimationFrame( draw );
 }

@@ -1,3 +1,5 @@
+import { drawSprite } from './sprites';
+
 import interiorsJson from '../public/maps/interiors.json';
 import interiorsImage from '../public/images/tiles/interiors_16x16.png';
 let interiors = { ...interiorsJson, image: new Image() };
@@ -90,15 +92,45 @@ function drawLayer( ctx, map, layer ) {
   }
 }
 
-export function drawMap(ctx) {
-  //drawTile( ctx, items, 118, 100,100);
-  drawLayer( ctx, theMap, theLayers[0] );
-  //drawLayer( ctx, theMap, theLayers[4] );
-  drawLayer( ctx, theMap, theLayers[1] );
-  drawLayer( ctx, theMap, theLayers[2] );
-  drawLayer( ctx, theMap, theLayers[3] );  
+export function drawMap(ctx, sprites) {
+  let baseLayer = theLayers[0];
 
+  let matrix = ctx.getTransform();
+  let cameraX = -matrix.e;
+  let cameraY = -matrix.f;
+  let viewportHeight = ctx.canvas.height;
+  let viewportWidth = ctx.canvas.width;
+  
+  let y1 = Math.floor(cameraY / theMap.tileheight );
+  let y2 = Math.ceil((cameraY + viewportHeight) / theMap.tileheight );    
+  y2 = Math.min( baseLayer.height, y2 );
+  y1 = Math.max( 0, y1 );
 
-  //  ctx.fillStyle = 'blue';
-  //ctx.fillRect(20, 10, 150, 100);
+  let x1 = Math.floor(cameraX / theMap.tilewidth );
+  let x2 = Math.ceil((cameraX + viewportWidth) / theMap.tilewidth );    
+  x2 = Math.min( baseLayer.width, x2 );
+  x1 = Math.max( 0, x1 );
+  
+  for(let y = y1; y < y2; y++ ) {
+    for(let i=0; i < 4; i++ ) {
+      let layer = theLayers[i];
+      let oy = layer.offsety || 0;
+
+      for(let x = x1; x < x2; x++ ) {
+        let gid = layer.data[x+y*layer.width];
+        let [tileset, id] = gidToTileset(theMap, gid);
+        if (tileset) {
+          let ox = layer.offsetx || 0;
+          drawTile( ctx, tileset, id,
+                    x*theMap.tilewidth + ox,
+                    y*theMap.tileheight + oy);
+        }
+      }
+    }
+
+    for(let sprite of sprites) {
+      if (Math.floor(sprite.y / theMap.tileheight) == y)
+        drawSprite(ctx, sprite);
+    }
+  }
 }

@@ -48,8 +48,6 @@ for (const [name, src] of Object.entries(srcs)) {
 }
 
 export function drawSprite( ctx, sprite ) {
-  console.log(sprite);
-
   let person = people[sprite.image];
 
   let x = sprite.x;
@@ -70,5 +68,5 @@ export function drawSprite( ctx, sprite ) {
     sx = (Math.floor(sprite.f) + direction * 6 ) * 16;
   }
   
-  ctx.drawImage( person, sx, sy, 16, 32, Math.round(x), Math.round(y), 16, 32);
+  ctx.drawImage( person, sx, sy, 16, 32, Math.round(x), Math.round(y) - 32, 16, 32);
 }
