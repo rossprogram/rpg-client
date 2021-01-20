@@ -69,4 +69,22 @@ export function drawSprite( ctx, sprite ) {
   }
   
   ctx.drawImage( person, sx, sy, 16, 32, Math.round(x), Math.round(y) - 32, 16, 32);
+
+  return;
+  
+  // FIXME replace with https://github.com/hgcummings/pixel-fonts
+  const name = 'HELLO WORLD'.split("").join(String.fromCharCode(8202));
+  ctx.font = '8px sans';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgb(0,0,0,1)';
+  for( let ox of [-1,0,1] ) {
+    for( let oy of [-1,0,1] ) {    
+      ctx.fillText(name, Math.round(x) + 8 + ox, Math.round(y) - 25 + oy);
+      ctx.fillText(name, Math.round(x) + 8 + ox, Math.round(y) - 25 + oy);      
+    }
+  }
+  ctx.fillStyle = 'rgb(255,255,255,1)';
+  ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);
+  ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);
+  ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);      
 }

@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { EnvironmentPlugin } = require("webpack");
 
 module.exports = {
   plugins: [
@@ -9,6 +10,10 @@ module.exports = {
                           }),
     new MiniCssExtractPlugin({
       filename: 'style.css',
+    }),
+    new EnvironmentPlugin({
+      API_ROOT: 'http://localhost:4000/',
+      WS_URL: 'ws://localhost:4000/',
     }),
   ],
   entry: {

@@ -5,7 +5,6 @@ import Route from 'route-parser';
 import Home from './home';
 import Help from './help';
 import Profile from './profile';
-import Realms from './realms';
 import Game from './game';
 
 function merge( state, stateAndCommands ) {
@@ -20,15 +19,9 @@ function findRoute( pathname, state ) {
     return Profile.init({ ...state, component: Profile }, r.match(pathname));
   }
 
-  r = new Route('/realms/:id');
-  if (r.match(pathname)) {
-    return Game.init({ ...state, component: Game }, r.match(pathname));
-  }  
-
-  if (pathname === '/realms')
-    return Realms.init({ ...state, component: Realms });
-  if (pathname === '/')
-    return Realms.init({ ...state, component: Realms });    
+  if (pathname === '/') {
+    return Game.init({ ...state, component: Game });
+  }
   
   if (pathname === '/help')
     return [{ ...state, component: Help }, Cmd.none];

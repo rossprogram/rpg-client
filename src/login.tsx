@@ -15,6 +15,16 @@ function doLogin(dispatch) {
   };
 }
 
+function doAnonymousLogin(dispatch) {
+  return function (ev) {
+    ev.preventDefault();
+
+    dispatch( ['anonymous-login' ] );
+    
+    ev.stopPropagation(); 
+  };
+}
+
 export function view( { state, dispatch } ) {
   return <div class={{"container":true}}>
     <div class={{row:true, "align-items-center": true}}>
@@ -32,6 +42,9 @@ export function view( { state, dispatch } ) {
     <button on-click={[[doLogin(dispatch)]]} class={{"btn-primary": true, btn: true}}>Login</button>
     </form></div>
     <div class={{"col":true}}></div>
+    <form>    
+    <button on-click={[[doAnonymousLogin(dispatch)]]} class={{"btn-primary": true, btn: true}}>Anonymous Login</button>    
+    </form>
     </div>
     </div>;
 }
@@ -55,6 +68,18 @@ export function update( message, state ) {
       }
     }];
   }
+
+  if (message[0] === 'anonymous-login') {
+    return [{...state, loggingIn: true}, async function* () {
+      try {
+        let tokenAndUser = await Server.getAnonymousToken();
+        yield [ 'token', tokenAndUser ];
+      } catch (error) {
+        yield [ 'error', error ];
+      }
+    }];
+  }
+
   
   return [state, Cmd.none];
 }

@@ -49,17 +49,14 @@ export function view( { state, dispatch } ) {
     <li class={{"nav-item":true}}>
     <Link class={{"nav-link":true}} dispatch={dispatch} href="/help">Help</Link>
     </li>
-    <li class={{"nav-item":true}}>
-    <Link class={{"nav-link":true}} dispatch={dispatch} href="/realms">Realms</Link>    
-    </li>
     </ul>
     <ul class={{"navbar-nav":true, "ml-auto": true}}>
     <li class={{"nav-item":true, "dropdown": true, "show": state.dropdown===true}}>
     <a class={{"nav-link":true,  "dropdown-toggle":true}} href="#" on-click={toggleDropdown(dispatch)} id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded={state.dropdown===true}>
-    {state.user.email}
+    {state.user.email || state.user.displayName}
     </a>
     <div class={{"dropdown-menu":true, "show": state.dropdown===true}} aria-labelledby="navbarDropdownMenuLink">
-    <Link class={{"dropdown-item":true}} dispatch={dispatch} href={`/users/${state.user.email}`}>{icon('id-card')}&nbsp;Profile</Link>
+    <Link class={{"dropdown-item":true}} dispatch={dispatch} href={`/users/${state.user.email || state.user.id}`}>{icon('id-card')}&nbsp;Profile</Link>
     <a class={{"dropdown-item":true}} href="#" on-click={(ev) => logout(dispatch)(ev)}>{icon('sign-out-alt')}&nbsp;Logout</a>
     </div>
     </li>

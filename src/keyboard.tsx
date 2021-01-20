@@ -2,6 +2,7 @@ let up = false;
 let down = false;
 let left = false;
 let right = false;
+let shifted = false;
 
 function keyDownHandler(event) {
   var keyCode = event.keyCode;
@@ -21,6 +22,9 @@ function keyDownHandler(event) {
   case 87: //w
   case 38:
     up = true;
+    break;
+  case 16:
+    shifted = true;
     break;
   }
 }
@@ -45,6 +49,9 @@ function keyUpHandler(event) {
   case 38:
     up = false;
     break;
+  case 16:
+    shifted = false;
+    break;        
   }
 }
 
@@ -67,4 +74,8 @@ export function isLeftPressed() {
   return left;
 }
 
-export default { isUpPressed, isDownPressed, isRightPressed, isLeftPressed };
+export function isShiftPressed() {
+  return shifted;
+}
+
+export default { isUpPressed, isDownPressed, isRightPressed, isLeftPressed, isShiftPressed };
