@@ -141,6 +141,8 @@ export function collisionType( x, y ) {
 }
 
 export function drawMap(ctx, sprites) {
+  sprites.sort( (a,b) => a.y - b.y );
+  
   let baseLayer = theLayers[0];
 
   let matrix = ctx.getTransform();
