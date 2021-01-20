@@ -18,6 +18,15 @@ let remoteSprites = {};
 
 let myShadow = { image: 'Mary', x: 0, y: 0, sx: 0, sy: 0, f: 0, dx: 0, dy: 0 };
 
+function sendUpdate() {
+  let me = sprites[0];  
+  let socket = theState.socket;
+  
+  let payload = { name: theState.user.displayName };
+  Object.assign( payload, me );
+  socket.send(JSON.stringify({ type: 'update', parameters: [payload] }));
+}
+
 function processPhysics( elapsed, me ) {
   let factor = 20.0;
   
@@ -95,11 +104,13 @@ function draw(time) {
   let socket = theState.socket;
   
   if (socket && socket.readyState == 1) {
+    // FIXME: should also check if direction has changed
     if ((Math.abs(Math.round(myShadow.x) - Math.round(me.x)) > 1.0) ||
-        (Math.abs(Math.round(myShadow.y) - Math.round(me.y)) > 1.0)) {
-      let payload = { name: theState.user.displayName };
-      Object.assign( payload, me );
-      socket.send(JSON.stringify({ type: 'update', parameters: [payload] }));
+        (Math.abs(Math.round(myShadow.y) - Math.round(me.y)) > 1.0) ||
+        (myShadow.sx != me.sx) ||
+        (myShadow.sy != me.sy)
+       ) {
+      sendUpdate();
       Object.assign( myShadow, me );
     }
   }
@@ -191,7 +202,10 @@ export function init(state) {
       if (payload.type == 'update') {
         let state = payload.parameters[0];
         
-        // FIXME: if this a NEW sprite, then we should send our own state to the server
+        // if this a NEW sprite, then we should send our own state to the server so everybody knows about us
+        if (!(state.uuid in remoteSprites))
+          sendUpdate();
+        
         remoteSprites[state.uuid] = state;
       }
     });
