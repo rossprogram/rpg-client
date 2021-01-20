@@ -36,34 +36,6 @@ for (let layer of theMap.layers) {
   theLayers.push({...layer, data: result});
 }
 
-let dirt = new Uint8Array(theLayers[0].data.length);
-
-export function markAllDirty() {
-  dirt.fill(1, 0, theLayers[0].data.length - 1);
-}
-
-function markAllClean() {
-  dirt.fill(0, 0, theLayers[0].data.length - 1);
-}
-
-function isDirty(x, y) {
-  const baseLayer = theLayers[0];
-  
-  if ((x < 0) || (x >= baseLayer.width)) return false;
-  if ((y < 0) || (y >= baseLayer.height)) return false;
-
-  return dirt[x+y*baseLayer.width] == 1;
-}
-
-function markDirty(x,y) {
-  const baseLayer = theLayers[0];
-  
-  if ((x < 0) || (x >= baseLayer.width)) return;
-  if ((y < 0) || (y >= baseLayer.height)) return;
-
-  dirt[x+y*baseLayer.width] = 1;
-}
-
 function gidToTileset( map, gid ) {
   let start;
 
@@ -153,8 +125,8 @@ export function drawMap(ctx, sprites) {
 
   let drawCount = 0;
   
-  //ctx.fillStyle = theMap.backgroundcolor;
-  //ctx.fillRect( cameraX, cameraY, viewportWidth, viewportHeight );
+  ctx.fillStyle = theMap.backgroundcolor;
+  ctx.fillRect( cameraX, cameraY, viewportWidth, viewportHeight );
   
   let y1 = Math.floor(cameraY / theMap.tileheight );
   let y2 = Math.ceil((cameraY + viewportHeight) / theMap.tileheight );
@@ -174,17 +146,14 @@ export function drawMap(ctx, sprites) {
         let ox = layer.offsetx || 0;
 
         for(let x = x1; x < x2; x++ ) {
-          if (isDirty(x + Math.floor(ox / theMap.tilewidth),
-                      y + Math.floor(oy / theMap.tileheight))) {
-            let gid = layer.data[x+y*layer.width];
-            let [tileset, id] = gidToTileset(theMap, gid);
+          let gid = layer.data[x+y*layer.width];
+          let [tileset, id] = gidToTileset(theMap, gid);
           
-            if (tileset) {
-              drawTile( ctx, tileset, id,
-                        x*theMap.tilewidth + ox,
-                        y*theMap.tileheight + oy);
-              drawCount++;
-            }
+          if (tileset) {
+            drawTile( ctx, tileset, id,
+                      x*theMap.tilewidth + ox,
+                      y*theMap.tileheight + oy);
+            drawCount++;
           }
         }
       }
@@ -194,25 +163,8 @@ export function drawMap(ctx, sprites) {
       if (Math.floor(sprite.y / theMap.tileheight) == y) {
         let x = Math.floor(sprite.x / theMap.tilewidth);
 
-        if (isDirty(x, y) || isDirty(x+1, y) || isDirty(x, y-1) || isDirty(x+1, y-1) || isDirty(x, y-2) || isDirty(x+1, y-2)) {
-          drawSprite(ctx, sprite);
-        }
+        drawSprite(ctx, sprite);
       }
     }
   }
-
-  markAllClean();
-  
-  for(let sprite of sprites) {
-    let x = Math.floor(sprite.x / theMap.tilewidth);
-    let y = Math.floor(sprite.y / theMap.tileheight);
-    markDirty(x, y);
-    markDirty(x+1, y);
-    markDirty(x, y-1);
-    markDirty(x+1, y-1);
-    markDirty(x, y-2);
-    markDirty(x+1, y-2);
-  }
-
-  console.log("Drew",drawCount,"tiles");
 }

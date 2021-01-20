@@ -97,7 +97,9 @@ function draw(time) {
   if (socket && socket.readyState == 1) {
     if ((Math.abs(Math.round(myShadow.x) - Math.round(me.x)) > 1.0) ||
         (Math.abs(Math.round(myShadow.y) - Math.round(me.y)) > 1.0)) {
-      socket.send(JSON.stringify({ type: 'update', parameters: [me] }));
+      let payload = { name: theState.user.displayName };
+      Object.assign( payload, me );
+      socket.send(JSON.stringify({ type: 'update', parameters: [payload] }));
       Object.assign( myShadow, me );
     }
   }
