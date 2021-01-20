@@ -18,6 +18,8 @@ import Rob from '../public/images/sprites/Rob_16x16.png';
 import Roki from '../public/images/sprites/Roki_16x16.png';
 import Samuel from '../public/images/sprites/Samuel_16x16.png';
 
+const { fonts, renderPixels } = require('js-pixel-fonts');
+
 let srcs = {
   Adam ,
   Alex ,
@@ -47,6 +49,8 @@ for (const [name, src] of Object.entries(srcs)) {
   people[name] = image;
 }
 
+let nametags = {};
+
 export function drawSprite( ctx, sprite ) {
   let person = people[sprite.image];
 
@@ -70,21 +74,44 @@ export function drawSprite( ctx, sprite ) {
   
   ctx.drawImage( person, sx, sy, 16, 32, Math.round(x), Math.round(y) - 32, 16, 32);
 
-  // FIXME: replace with https://github.com/hgcummings/pixel-fonts
   if (sprite.name) {
-    const name = sprite.name.split("").join(String.fromCharCode(8202));
-    ctx.font = '8px sans';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgb(0,0,0,1)';
-    for( let ox of [-1,0,1] ) {
-      for( let oy of [-1,0,1] ) {    
-        ctx.fillText(name, Math.round(x) + 8 + ox, Math.round(y) - 25 + oy);
-        ctx.fillText(name, Math.round(x) + 8 + ox, Math.round(y) - 25 + oy);      
+    const name = sprite.name;
+  
+    if (nametags[name]) {
+      let tx = Math.round(x + 8 - nametags[name].black.width / 2);
+      let ty =  Math.round(y) - 32;
+      for( let ox of [-1,0,1] ) {
+        for( let oy of [-1,0,1] ) {
+          ctx.drawImage( nametags[name].black, tx + ox, ty + oy );
+        }
       }
+      ctx.drawImage( nametags[name].white, tx, ty );
+    } else {
+      let image = renderPixels( name, fonts.sevenPlus );
+  
+      const whiteImage = ctx.createImageData( image[0].length, image.length );
+      const blackImage = ctx.createImageData( image[0].length, image.length );  
+
+      for (let i = 0; i < whiteImage.data.length; i += 4) {
+        let ix = Math.floor(i / 4) % image[0].length;
+        let iy = Math.floor((i / 4) / image[0].length);
+        let alpha = image[iy][ix] * 255;
+    
+        whiteImage.data[i + 0] = 255;
+        whiteImage.data[i + 1] = 255;
+        whiteImage.data[i + 2] = 255;
+        whiteImage.data[i + 3] = alpha;
+        blackImage.data[i + 0] = 0;
+        blackImage.data[i + 1] = 0;
+        blackImage.data[i + 2] = 0;
+        blackImage.data[i + 3] = alpha;
+      }
+
+      createImageBitmap( whiteImage ).then( (whiteBitmap) => {
+        createImageBitmap( blackImage ).then( (blackBitmap) => {      
+          nametags[name] = { white: whiteBitmap, black: blackBitmap };
+        });
+      });
     }
-    ctx.fillStyle = 'rgb(255,255,255,1)';
-    ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);
-    ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);
-    ctx.fillText(name, Math.round(x) + 8, Math.round(y) - 25);
   }
 }

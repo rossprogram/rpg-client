@@ -1,7 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { EnvironmentPlugin } = require("webpack");
+const webpack = require("webpack");
+const EnvironmentPlugin = webpack.EnvironmentPlugin;
 
 module.exports = {
   plugins: [
@@ -14,6 +15,9 @@ module.exports = {
     new EnvironmentPlugin({
       API_ROOT: 'http://localhost:4000/',
       WS_URL: 'ws://localhost:4000/',
+    }),
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
     }),
   ],
   entry: {
@@ -82,7 +86,12 @@ module.exports = {
   },
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
-    fallback: { "path": require.resolve("path-browserify") },
+    fallback: { "path": require.resolve("path-browserify"),
+                "zlib": require.resolve("browserify-zlib"),
+                "util": require.resolve("util/"),
+                "assert": require.resolve("assert/"),
+                "stream": require.resolve("stream-browserify")
+              },
   },
   output: {
     filename: '[name].js',

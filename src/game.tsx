@@ -86,7 +86,8 @@ function draw(time) {
   ////////////////////////////////////////////////////////////////
   // Physics for walking
   let me = sprites[0];
-
+  me.image = theState.user.avatar;
+  
   let factor = 20.0;
   if (keyboard.isDownPressed()) { me.dy += elapsed/factor; if (!keyboard.isShiftPressed()) { me.sy = 1; me.sx = 0; } }
   if (keyboard.isUpPressed()) { me.dy -= elapsed/factor; if (!keyboard.isShiftPressed()) { me.sy = -1; me.sx = 0; } }
@@ -95,7 +96,6 @@ function draw(time) {
 
   remoteSprites['me'] = me;
   Object.values( remoteSprites ).forEach( (sprite) => {
-    console.log( sprite );
     processPhysics( elapsed, sprite );
   });
 

@@ -44,19 +44,25 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "@ximeraproject/kpathsea": "^1.0.2",
+    "assert": "^2.0.0",
     "bootstrap": "^4.5.3",
     "bootstrap.native": "^3.0.14",
+    "browserify-zlib": "^0.2.0",
     "dvi2html": "^0.0.6",
     "fetch-readablestream": "^0.2.0",
     "idb": "^5.0.8",
     "jquery": "^3.5.1",
+    "js-pixel-fonts": "^1.5.0",
     "node-fetch": "^2.6.1",
     "object-sizeof": "^1.6.1",
     "path-browserify": "^1.0.1",
     "pify": "^5.0.0",
     "popper.js": "*",
+    "process": "^0.11.10",
     "route-parser": "^0.0.5",
     "snabbdom": "^2.1.0",
-    "snabbdom-pragma": "^2.8.0"
+    "snabbdom-pragma": "^2.8.0",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.3"
   }
 }
