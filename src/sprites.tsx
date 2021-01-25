@@ -41,6 +41,8 @@ let srcs = {
   Roki ,
   Samuel };
 
+export var avatars = srcs;
+
 let people = {};
 
 for (const [name, src] of Object.entries(srcs)) {
@@ -74,7 +76,7 @@ export function drawSprite( ctx, sprite ) {
   
   ctx.drawImage( person, sx, sy, 16, 32, Math.round(x), Math.round(y) - 32, 16, 32);
 
-  if (sprite.name) {
+    if (sprite.name) {
     const name = sprite.name;
   
     if (nametags[name]) {

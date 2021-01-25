@@ -56,4 +56,25 @@ export async function getUser(token, id) {
   return body;
 }
 
-export default { getToken, getAnonymousToken, getUser };
+export async function patchProfile(token, id, delta) {
+  let headers = new Headers();
+
+  headers.append('Authorization', 'Bearer ' + token);
+  headers.append('Content-Type','application/json');
+
+  let response = await fetch(API_ROOT+'users/'+id,
+                             {method:'PUT',
+                              headers,
+                              body: JSON.stringify(delta)
+                             });
+  
+  if (!response.ok) {
+    throw Error(response.statusText);
+  }
+  
+  let body = await response.json();
+  
+  return body;
+}
+
+export default { getToken, getAnonymousToken, getUser, patchProfile };

@@ -1,5 +1,10 @@
 @import '~bootstrap/dist/css/bootstrap.min.css';
 
+@keyframes walkSprite{
+      from{background-position-x:-288px;}
+      to{background-position-x:-384px;}
+}
+
 .bd-example-modal-lg .modal-dialog{
     display: table;
     position: relative;
@@ -21,7 +26,7 @@ main > .container {
 
 .footer {
     background-color: #f5f5f5;
-    opacity: 0.5;
+    //opacity: 0.5;
 }
 
 .footer > .container {
