@@ -2,6 +2,7 @@ import Snabbdom from 'snabbdom-pragma';
 import Cmd from './cmd';
 import Server from './api';
 import { Link } from './router';
+import Jitsi from './jitsi';
 
 import { drawMap, collisionType } from './tiles';
 import keyboard from './keyboard';
@@ -120,7 +121,7 @@ function draw(time) {
   
   if (collisionType(me.x + 8, me.y) !== theRoom) {
     theRoom = collisionType(me.x + 8, me.y);
-    theDispatch( ['entered-room', theRoom] );
+    theDispatch( ['jitsi/entered-room', theRoom] );
   }
 
   ////////////////////////////////////////////////////////////////
@@ -148,12 +149,45 @@ function draw(time) {
     window.requestAnimationFrame( draw );
 }
 
+function setupWebsocket(state) {
+  const WS_URL = process.env.WS_URL;
+
+  // Create WebSocket connection.
+  if (WS_URL) {
+    const socket = new WebSocket(WS_URL);
+
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+      socket.send(JSON.stringify({ token: state.token }));
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', function (event) {
+      console.log(event);
+      
+      let payload = JSON.parse(event.data);
+      if (payload.type == 'update') {
+        let state = payload.parameters[0];
+
+        // if this a NEW sprite, then we should send our own state to the server so everybody knows about us
+        if (!(state.uuid in remoteSprites))
+          sendUpdate();
+        
+        remoteSprites[state.uuid] = state;
+      }
+    });
+    
+    return { ...state, socket };
+  }
+
+  return state;
+}
+
 export function update( message, state ) {
   theState = state;
 
-  if (message[0] == 'entered-room') {
-    return [ {...state, room: message[1] }, Cmd.none ];
-  }
+  if (message[0].startsWith( 'jitsi/' ))
+    return Jitsi.update( message, state );
   
   if ((message[0] == 'window-resize') || (message[0] == 'canvas-inserted')) {
     let width = window.innerWidth;
@@ -161,6 +195,8 @@ export function update( message, state ) {
     let newState = state;
 
     if (message[0] == 'canvas-inserted') {
+      state = setupWebsocket(state);
+      
       document.body.style.overflow = "hidden";
       newState = {...state, canvas: document.getElementById('canvas') };
       window.requestAnimationFrame(draw);
@@ -185,35 +221,6 @@ export function update( message, state ) {
 }
 
 export function init(state) {
-  const WS_URL = process.env.WS_URL;
-
-  // Create WebSocket connection.
-  if (WS_URL) {
-    const socket = new WebSocket(WS_URL);
-
-    // Connection opened
-    socket.addEventListener('open', function (event) {
-      socket.send(JSON.stringify({ token: state.token }));
-    });
-
-    // Listen for messages
-    socket.addEventListener('message', function (event) {
-      let payload = JSON.parse(event.data);
-      if (payload.type == 'update') {
-        let state = payload.parameters[0];
-        
-        // if this a NEW sprite, then we should send our own state to the server so everybody knows about us
-        if (!(state.uuid in remoteSprites))
-          sendUpdate();
-        
-        remoteSprites[state.uuid] = state;
-      }
-    });
-
-    return [{...state, socket }, async function* () {
-    }];
-  }
-
   return [{...state}, async function* () {
   }];
 }
@@ -221,7 +228,8 @@ export function init(state) {
 export function view( { state, dispatch } ) {
   theDispatch = dispatch;
     
-  return <canvas id="canvas" style={{position:"absolute",top:"0px",left:"0px","z-index":-1}} width="100" height="100" hook={{insert: () => dispatch(['canvas-inserted']), destroy: () => document.body.style.overflow = 'initial'}}></canvas>;
+  return <canvas id="canvas" style={{position:"absolute",top:"0px",left:"0px","z-index":-1}} width="100" height="100"
+    hook={{insert: () => dispatch(['canvas-inserted']), destroy: () => document.body.style.overflow = 'initial'}}></canvas>;
 }
 
 export default { view, init, update };

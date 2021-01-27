@@ -29,13 +29,15 @@ var patch = init([ // Init patch function with chosen modules
 
 // the initial container
 var vnode;
-let oldState = window.localStorage.getItem('state');
+//let oldState = window.localStorage.getItem('state');
 
 let state;
+
+/*
 if (oldState) {
   state = JSON.parse(oldState);
   delete state.canvas;
-}
+}*/
 
 function repaint() {
   if (vnode === undefined)
@@ -71,7 +73,7 @@ const repaintSlowly = debounce( repaint, 10 );
 
 function update(stateAndCommand) {
   state = stateAndCommand[0];
-  window.localStorage.setItem('state', JSON.stringify(state));
+  //window.localStorage.setItem('state', JSON.stringify(state));
   //console.log(state);
                
   //window.requestAnimationFrame( repaint );

@@ -3,6 +3,8 @@ import Cmd from './cmd';
 import { Link } from './router';
 
 import icon from './icons';
+import Jitsi from './jitsi';
+let JitsiView = Jitsi.view;
 
 function toggleDropdown(dispatch) {
   return function (ev) {
@@ -44,6 +46,7 @@ export function view( { state, dispatch } ) {
     <button class={{"navbar-toggler":true}} type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class={{"navbar-toggler-icon":true}}></span>
     </button>
+    <JitsiView state={state} dispatch={dispatch}></JitsiView>
     <div class={{collapse:true, "navbar-collapse":true}} id="navbarNav">
     <ul class={{"navbar-nav":true}}>
     <li class={{"nav-item":true}}>

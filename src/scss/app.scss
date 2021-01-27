@@ -5,6 +5,10 @@
       to{background-position-x:-384px;}
 }
 
+video {
+    max-width: 128px;
+}
+
 .bd-example-modal-lg .modal-dialog{
     display: table;
     position: relative;

@@ -1,51 +1,231 @@
 import Snabbdom from 'snabbdom-pragma';
 import Cmd from './cmd';
 import Server from './api';
-let JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+let JitsiMeetJS = (window as any).JitsiMeetJS;
 
-let theNode;
-let api;
-let theRoom;
+const options = {
+  hosts: {
+    domain: 'meet.jit.si',
+    muc: 'conference.meet.jit.si', 
+    focus: 'focus.meet.jit.si',
+  }, 
+  externalConnectUrl: 'https://meet.jit.si/http-pre-bind', 
+  enableP2P: true, 
+  p2p: { 
+    enabled: true, 
+    preferH264: true, 
+    disableH264: true, 
+    useStunTurn: true,
+  }, 
+  useStunTurn: true, 
+  bosh: `https://meet.jit.si/http-bind?room=rossrpg`,
+  websocket: 'wss://meet.jit.si/xmpp-websocket', 
+  clientNode: 'http://jitsi.org/jitsimeet', 
+}
 
-function createJitsi(state) {
-  const domain = 'meet.jit.si';
-  const options = {
-    roomName: `${state.room}.rooms.rossprogram.org`,
-    width: '100%',
-    height: '256',
-    parentNode: theNode,
-    userInfo: {
-      email: state.user.email,
-      displayName: state.user.displayName
-    },
-    configOverwrite: {
-        prejoinPageEnabled: false
-    }    
+const confOptions = {
+    openBridgeChannel: true
+};
+
+let theDispatch;
+
+let connection;
+let isJoined = false;
+let room;
+let roomName;
+
+let theConnection;
+
+let localTracks = [];
+const remoteTracks = {};
+
+function onRemoteTrack(track) {
+  if (track.isLocal()) {
+    return;
+  }
+  
+  const participant = track.getParticipantId();
+
+  theDispatch( ['jitsi/add-remote-track', participant, track] );
+}
+
+
+function onUserLeft(id) {
+  theDispatch( ['jitsi/user-left', id] );
+}
+
+/**
+ * That function is called when connection is established successfully
+ */
+function onConnectionSuccess() {
+  console.log('fowler',connection);
+}
+
+/**
+ * This function is called when the connection fail.
+ */
+function onConnectionFailed() {
+    console.error('Connection Failed!');
+}
+
+/**
+ * This function is called when we disconnect.
+ */
+function disconnect() {
+    console.log('disconnect!');
+    connection.removeEventListener(
+        JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+        onConnectionSuccess);
+    connection.removeEventListener(
+        JitsiMeetJS.events.connection.CONNECTION_FAILED,
+        onConnectionFailed);
+    connection.removeEventListener(
+        JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED,
+        disconnect);
+}
+
+function onLocalTracks(tracks) {
+  theDispatch( ['jitsi/set-local-tracks', tracks] );
+}
+
+function init() {
+  const initOptions = {
+    disableAudioLevels: true
   };
-  api = new JitsiMeetExternalAPI(domain, options);  
-}
 
-function insert(vnode, state) {
-  theNode = vnode.elm;
-  createJitsi(state);
-}
+  JitsiMeetJS.init(initOptions);
 
-export function Jitsi( { state, dispatch } ) {
-  if (state.room && state.user) {
-    if (state.room !== theRoom) {
-      theRoom = state.room;
-      if (api) {
-        api.getIFrame().remove();
-        api = undefined;
-        createJitsi(state);
-      }
-    }
+  connection = new JitsiMeetJS.JitsiConnection(null, null, options);
+
+  theConnection = new Promise(function(resolve, reject) {
+    connection.addEventListener(
+      JitsiMeetJS.events.connection.CONNECTION_ESTABLISHED,
+      () => { resolve(connection); });
     
-    return <div idclass={{jitsibox: true}} hook={{insert: (vnode) => insert(vnode, state)}}>
-      </div>;
+    connection.addEventListener(
+      JitsiMeetJS.events.connection.CONNECTION_FAILED,
+      () => { reject('failed'); });
+  });
+  
+  connection.addEventListener(
+    JitsiMeetJS.events.connection.CONNECTION_DISCONNECTED,
+    disconnect);
+
+  connection.connect();
+
+  JitsiMeetJS.createLocalTracks({ devices: [ 'audio', 'video' ] })
+    .then(onLocalTracks)
+    .catch(error => {
+        throw error;
+    });
+}
+
+export function update( message, state ) {
+  if (message[0] == 'jitsi/entered-room') {
+    
+    if (roomName == message[1]) return [ state, Cmd.none ];
+    if (room) return [ state, Cmd.none ];
+      
+    roomName = message[1];
+
+    if (room) room.leave();
+
+    if (theConnection) {
+      theConnection.then( (aConnection) => {
+        room = connection.initJitsiConference(`rossrpg`, confOptions);
+        
+        room.on(JitsiMeetJS.events.conference.TRACK_ADDED, onRemoteTrack);
+  
+        room.on(
+          JitsiMeetJS.events.conference.CONFERENCE_JOINED,
+          () => { theDispatch( ['jitsi/conference-joined'] ) } );
+
+        room.on(JitsiMeetJS.events.conference.USER_LEFT, onUserLeft);
+        
+        room.join();
+      });
+    }
+                        
+    return [ {...state, room: roomName }, Cmd.none ];
+  }
+  
+  if (message[0] == 'jitsi/set-local-tracks') {
+    return [ {...state, localTracks: message[1] }, Cmd.none ];
   }
 
-    return <div></div>;
+  if (message[0] == 'jitsi/add-remote-track') {
+    let participant = message[1];
+    let track = message[2];
+
+    let remoteTracks = state.remoteTracks;    
+    if (remoteTracks === undefined) remoteTracks = {};
+    if (!(participant in remoteTracks)) remoteTracks[participant] = [];
+
+    remoteTracks[participant].push( track );
+    return [ {...state, remoteTracks }, Cmd.none ];
+  }
+
+  if (message[0] == 'jitsi/user-left') {
+    let participant = message[1];
+
+    let remoteTracks = state.remoteTracks;    
+    if (remoteTracks === undefined) remoteTracks = {};
+    remoteTracks[participant] = [];
+    return [ {...state, remoteTracks }, Cmd.none ];
+  }
+
+  if (message[0] == 'jitsi/conference-joined') {
+    if (state.localTracks && room) {
+      state.localTracks.forEach( (track) => {
+        console.log(track);
+        room.addTrack(track);
+      });
+    }
+
+    return [ state, Cmd.none ];
+  }
+
+  return [ state, Cmd.none ];  
+}
+  
+export function view( { state, dispatch } ) {
+  if (theDispatch == undefined) {
+    theDispatch = dispatch;
+    init();
+  }
+  
+  let theTracks = [] as JSX.Element[];
+    
+  if (state.localTracks) {
+    state.localTracks.forEach( (track) => {
+      if (track.getType() === 'video') {
+        theTracks.push( <video autoplay="1" id="localVideo"
+                        hook={{insert: (vnode) => track.attach(vnode.elm)}}/> );
+      } else {
+        theTracks.push( <audio autoplay="1" muted="true" id="localAudio"
+                        hook={{insert: (vnode) => track.attach(vnode.elm)}}/> );
+      }
+    });
+  }
+  
+  if (state.remoteTracks) {
+    Object.keys(state.remoteTracks).forEach( (participant) => {
+      let tracks = state.remoteTracks[participant];
+      tracks.forEach( (track, idx) => {
+        if (track.getType() === 'video') {
+          theTracks.push( <video autoplay="1" id={`${participant}video${idx}`}
+                          hook={{insert: (vnode) => track.attach(vnode.elm),
+                                 destroy: (vnode) => track.detach(vnode.elm)}}/> );
+        } else {
+          theTracks.push( <audio autoplay="1" id={`${participant}audio${idx}`}
+                          hook={{insert: (vnode) => track.attach(vnode.elm),
+                                 destroy: (vnode) => track.detach(vnode.elm)}}/> );
+        }
+      });
+    });
+  }
+
+  return <div>{theTracks} {state.room} </div>;
 }
 
-export default { Jitsi };
+export default { view, update };
